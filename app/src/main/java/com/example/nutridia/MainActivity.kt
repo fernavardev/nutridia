@@ -29,6 +29,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 
 enum class Pantalla {
     LOGIN,
@@ -45,7 +48,8 @@ data class Usuario(
 data class Receta(
     val dia: String,
     val nombre: String,
-    val descripcion: String,
+    val ingredientes: String,
+    val preparacion: String,
     val recomendacion: String
 )
 class MainActivity : ComponentActivity() {
@@ -66,31 +70,36 @@ class MainActivity : ComponentActivity() {
                     Receta(
                         dia = "Lunes",
                         nombre = "Pollo con arroz y verduras",
-                        descripcion = "Pechuga de pollo acompañada de arroz y verduras frescas.",
+                        ingredientes = "Pechuga de pollo, arroz, zanahoria, pimentón, brócoli y cebolla.",
+                        preparacion = "1. Cocina el arroz hasta que esté listo.\n2. Cocina el pollo en una sartén junto con las verduras.\n3. Sirve el pollo y las verduras acompañados del arroz.",
                         recomendacion = "Una comida equilibrada que combina proteínas, carbohidratos y verduras."
                     ),
                     Receta(
                         dia = "Martes",
                         nombre = "Lentejas con verduras",
-                        descripcion = "Lentejas preparadas con zanahoria, cebolla y otras verduras.",
+                        ingredientes = "Lentejas, zanahoria, cebolla, pimentón, zapallo y ajo.",
+                        preparacion = "1. Cocina las lentejas en agua hasta que comiencen a ablandarse.\n2. Agrega las verduras picadas y continúa la cocción.\n3. Cocina hasta que las lentejas y verduras estén tiernas y sirve caliente.",
                         recomendacion = "Las lentejas aportan proteínas vegetales, fibra y minerales."
                     ),
                     Receta(
                         dia = "Miércoles",
                         nombre = "Pescado con papas cocidas",
-                        descripcion = "Pescado preparado a la plancha acompañado de papas cocidas y ensalada.",
+                        ingredientes = "Filete de pescado, papas, lechuga, tomate, limón y condimentos.",
+                        preparacion = "1. Cocina las papas en agua hasta que estén blandas.\n2. Cocina el pescado a la plancha y prepara una ensalada de lechuga y tomate.\n3. Sirve el pescado acompañado de las papas y la ensalada.",
                         recomendacion = "El pescado es una buena fuente de proteínas y grasas saludables."
                     ),
                     Receta(
                         dia = "Jueves",
                         nombre = "Pasta con salsa de tomate",
-                        descripcion = "Pasta acompañada de salsa de tomate casera y verduras.",
-                        recomendacion = "Complementa la pasta con verduras para obtener una comida más equilibrada."
+                        ingredientes = "Pasta, tomate, cebolla, zanahoria, ajo y condimentos.",
+                        preparacion = "1. Cocina la pasta según las indicaciones hasta que esté lista.\n2. Prepara una salsa cocinando el tomate junto con la cebolla, zanahoria y ajo.\n3. Mezcla la pasta con la salsa y sirve.",
+                        recomendacion = "Complementar la pasta con verduras ayuda a obtener una comida más equilibrada."
                     ),
                     Receta(
                         dia = "Viernes",
                         nombre = "Ensalada de pollo",
-                        descripcion = "Ensalada fresca con pollo, lechuga, tomate, zanahoria y otros vegetales.",
+                        ingredientes = "Pechuga de pollo, lechuga, tomate, zanahoria, pepino y limón.",
+                        preparacion = "1. Cocina la pechuga de pollo y córtala en trozos.\n2. Lava y corta las verduras para preparar la ensalada.\n3. Incorpora el pollo, mezcla los ingredientes y aliña con limón.",
                         recomendacion = "Una alternativa ligera que combina proteínas con una variedad de verduras."
                     )
                 )
@@ -169,7 +178,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "NutriDía",
+            text = "NutriDía 🥜",
             fontSize = 32.sp
         )
 
@@ -400,17 +409,145 @@ fun MinutaScreen(
     recetas: List<Receta>,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Minuta semanal",
-            fontSize = 28.sp
-        )
+    var recetaSeleccionada by remember { mutableStateOf<Receta?>(null) }
+
+    if (recetaSeleccionada == null) {
+
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Minuta semanal",
+                fontSize = 28.sp
+            )
+
+            Text(
+                text = "¿Qué cocinamos hoy?",
+                fontSize = 20.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Text(
+                text = "Selecciona un día para conocer tu menú",
+                modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
+            )
+
+            recetas.forEach { receta ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "🗓️️️ ${receta.dia}",
+                            fontSize = 20.sp
+                        )
+
+                        Text(
+                            text = receta.nombre,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+
+                        Button(
+                            onClick = {
+                                recetaSeleccionada = receta
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                        ) {
+                            Text("Ver menú")
+                        }
+                    }
+                }
+            }
+        }
+
+    } else {
+
+        val receta = recetaSeleccionada!!
+
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "🍽️ ${receta.dia}",
+                fontSize = 20.sp
+            )
+
+            Text(
+                text = receta.nombre,
+                fontSize = 28.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Text(
+                text = "Ingredientes",
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp)
+            )
+
+            Text(
+                text = receta.ingredientes,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            )
+
+            Text(
+                text = "Preparación",
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp)
+            )
+
+            Text(
+                text = receta.preparacion,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            )
+
+            Text(
+                text = "Recomendación nutricional",
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp)
+            )
+
+            Text(
+                text = receta.recomendacion,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            )
+
+            Button(
+                onClick = {
+                    recetaSeleccionada = null
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp)
+            ) {
+                Text("Volver a la minuta")
+            }
+        }
     }
 }
 
