@@ -34,10 +34,12 @@ fun RegistroScreen(
     onVolver: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // guarda los datos ingresados en el formulario mientras se procede con el registro
     var usuario by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
     var nivelCocina by remember { mutableStateOf("Bajo") }
 
+    // define niveles disponibles para seleccionar la experiencia en la cocina
     val nivelesCocina = listOf(
         "Bajo",
         "Medio",

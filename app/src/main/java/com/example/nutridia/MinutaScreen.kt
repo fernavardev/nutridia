@@ -37,8 +37,8 @@ fun MinutaScreen(
     onCerrarSesion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // guarda el estado del dia y receta seleccionados mientras se interactua con la minuta
     var recetaSeleccionada by remember { mutableStateOf<Receta?>(null) }
-
     var menuDiasExpandido by remember { mutableStateOf(false) }
     var diaSeleccionado by remember { mutableStateOf("") }
 
@@ -172,7 +172,7 @@ fun MinutaScreen(
 
     } else {
 
-        val receta = recetaSeleccionada!!
+        val receta = recetaSeleccionada ?: return
 
         Column(
             modifier = modifier
@@ -226,7 +226,8 @@ fun MinutaScreen(
                     .padding(top = 32.dp)
             )
 
-            receta.ingredientes.forEach { ingrediente ->
+            // recorre la coleccion de los ingredientes para poder mostrar y controlar el estado de cada elemento
+            for (ingrediente in receta.ingredientes) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -288,6 +289,7 @@ fun MinutaScreen(
     }
 }
 
+// componente reutilizable el cual recibe textos como parametros para poder construir una fila de una tabla
 @Composable
 fun FilaTabla(
     etiqueta: String,

@@ -31,6 +31,7 @@ fun LoginScreen(
     modifier: Modifier = Modifier
 ) {
 
+    // Mantiene estado de los datos ingresados y mensajes de validacion del formulario
     var usuario by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
     var mensajeError by remember { mutableStateOf("") }
@@ -55,7 +56,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it },
-            label = { Text("Usuario") },
+            label = { Text("Correo") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -74,15 +75,19 @@ fun LoginScreen(
 
         Button(
             onClick = {
+                // verifica dentro de la coleccion de usuarios si correo y contraseña son validos
                 val usuarioValido = usuarios.any {
                     it.nombre == usuario && it.contrasena == contrasena
                 }
 
-                if (usuarioValido) {
-                    mensajeError = ""
-                    onIngresar()
+                mensajeError = if (usuarioValido) {
+                    ""
                 } else {
-                    mensajeError = "Usuario o contraseña incorrectos"
+                    "Usuario o contraseña incorrectos"
+                }
+
+                if (usuarioValido) {
+                    onIngresar()
                 }
             },
             modifier = Modifier

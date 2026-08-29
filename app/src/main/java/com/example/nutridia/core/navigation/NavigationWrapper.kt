@@ -22,7 +22,7 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
     // Datos compartidos durante la ejecución de la aplicación.
     val usuarios = remember {
         mutableStateListOf(
-            Usuario("admin", "1234", "Bajo")
+            Usuario("admin@correo.cl", "1234", "Bajo")
         )
     }
 
@@ -101,6 +101,7 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
         )
     }
 
+    // Define navegacion entre pantallas de la aplicacion utilizando Navigation Compose
     NavHost(
         navController = navController,
         startDestination = Login,

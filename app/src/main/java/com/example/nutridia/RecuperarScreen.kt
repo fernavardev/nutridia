@@ -28,6 +28,7 @@ fun RecuperarScreen(
     onVolver: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // guarda datos ingresados y mensaje generado durante la recuperacion
     var usuario by remember { mutableStateOf("") }
     var nuevaContrasena by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf("") }
@@ -74,6 +75,7 @@ fun RecuperarScreen(
                 if (usuario.isBlank() || nuevaContrasena.isBlank()) {
                     mensaje = "Completa todos los campos"
                 } else {
+                    // busca el usuario dentro de la coleccion y actualiza su contraseña cuando existe
                     val usuarioEncontrado = usuarios.find {
                         it.nombre == usuario
                     }
