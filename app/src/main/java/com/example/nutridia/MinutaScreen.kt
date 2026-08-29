@@ -18,13 +18,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Checkbox
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MinutaScreen(
     recetas: List<Receta>,
+    onCerrarSesion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var recetaSeleccionada by remember { mutableStateOf<Receta?>(null) }
+
+    var menuDiasExpandido by remember { mutableStateOf(false) }
+    var diaSeleccionado by remember { mutableStateOf("") }
+
+    val ingredientesMarcados = remember {
+        mutableStateMapOf<String, Boolean>()
+    }
 
     if (recetaSeleccionada == null) {
 
@@ -51,28 +71,84 @@ fun MinutaScreen(
                 modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             )
 
-            recetas.forEach { receta ->
+            Text(
+                text = "Seleccione día",
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ExposedDropdownMenuBox(
+                expanded = menuDiasExpandido,
+                onExpandedChange = {
+                    menuDiasExpandido = !menuDiasExpandido
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                OutlinedTextField(
+                    value = diaSeleccionado.ifEmpty {
+                        "Seleccionar día"
+                    },
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = menuDiasExpandido
+                        )
+                    },
+                    modifier = Modifier
+                        .menuAnchor(
+                            ExposedDropdownMenuAnchorType.PrimaryNotEditable
+                        )
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = menuDiasExpandido,
+                    onDismissRequest = {
+                        menuDiasExpandido = false
+                    }
+                ) {
+                    recetas.forEach { receta ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(receta.dia)
+                            },
+                            onClick = {
+                                diaSeleccionado = receta.dia
+                                menuDiasExpandido = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            val recetaDelDia = recetas.find {
+                it.dia == diaSeleccionado
+            }
+
+            if (recetaDelDia != null) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                        .padding(top = 16.dp, bottom = 16.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = "🗓️️️ ${receta.dia}",
+                            text = "🗓️ ${recetaDelDia.dia}",
                             fontSize = 20.sp
                         )
 
                         Text(
-                            text = receta.nombre,
+                            text = recetaDelDia.nombre,
                             modifier = Modifier.padding(top = 8.dp)
                         )
 
                         Button(
                             onClick = {
-                                recetaSeleccionada = receta
+                                recetaSeleccionada = recetaDelDia
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -82,6 +158,15 @@ fun MinutaScreen(
                         }
                     }
                 }
+            }
+
+            Button(
+                onClick = onCerrarSesion,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                Text("Cerrar sesión")
             }
         }
 
@@ -107,6 +192,32 @@ fun MinutaScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
 
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Información del menú",
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    FilaTabla(
+                        etiqueta = "Día",
+                        valor = receta.dia
+                    )
+
+                    FilaTabla(
+                        etiqueta = "Menú",
+                        valor = receta.nombre
+                    )
+                }
+            }
+
             Text(
                 text = "Ingredientes",
                 fontSize = 20.sp,
@@ -115,12 +226,23 @@ fun MinutaScreen(
                     .padding(top = 32.dp)
             )
 
-            Text(
-                text = receta.ingredientes,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-            )
+            receta.ingredientes.forEach { ingrediente ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = ingredientesMarcados[ingrediente] ?: false,
+                        onCheckedChange = { marcado ->
+                            ingredientesMarcados[ingrediente] = marcado
+                        }
+                    )
+
+                    Text(
+                        text = ingrediente
+                    )
+                }
+            }
 
             Text(
                 text = "Preparación",
@@ -163,5 +285,31 @@ fun MinutaScreen(
                 Text("Volver a la minuta")
             }
         }
+    }
+}
+
+@Composable
+fun FilaTabla(
+    etiqueta: String,
+    valor: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = Color.Gray
+            )
+            .padding(8.dp)
+    ) {
+        Text(
+            text = "$etiqueta:",
+            modifier = Modifier.weight(1f)
+        )
+
+        Text(
+            text = valor,
+            modifier = Modifier.weight(2f)
+        )
     }
 }

@@ -21,15 +21,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.RadioButton
 
 @Composable
 fun RegistroScreen(
-    onRegistrar: (String, String) -> Unit,
+    onRegistrar: (String, String, String) -> Unit,
     onVolver: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var usuario by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
+    var nivelCocina by remember { mutableStateOf("Bajo") }
+
+    val nivelesCocina = listOf(
+        "Bajo",
+        "Medio",
+        "Alto"
+    )
 
     Column(
         modifier = modifier
@@ -51,7 +64,7 @@ fun RegistroScreen(
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it },
-            label = { Text("Usuario") },
+            label = { Text("Correo") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -68,10 +81,45 @@ fun RegistroScreen(
                 .padding(top = 16.dp)
         )
 
+        Text(
+            text = "Nivel de experiencia en cocina",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp, bottom = 8.dp)
+        )
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+        ) {
+            items(nivelesCocina) { nivel ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = nivelCocina == nivel,
+                        onClick = {
+                            nivelCocina = nivel
+                        }
+                    )
+
+                    Text(
+                        text = nivel
+                    )
+                }
+            }
+        }
+
         Button(
             onClick = {
                 if (usuario.isNotBlank() && contrasena.isNotBlank()) {
-                    onRegistrar(usuario, contrasena)
+                    onRegistrar(
+                        usuario,
+                        contrasena,
+                        nivelCocina
+                    )
                 }
             },
             modifier = Modifier
