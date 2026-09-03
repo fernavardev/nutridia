@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun RecuperarScreen(
-    usuarios: List<Usuario>,
     onVolver: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -75,13 +74,14 @@ fun RecuperarScreen(
                 if (usuario.isBlank() || nuevaContrasena.isBlank()) {
                     mensaje = "Completa todos los campos"
                 } else {
-                    // busca el usuario dentro de la coleccion y actualiza su contraseña cuando existe
-                    val usuarioEncontrado = usuarios.find {
-                        it.nombre == usuario
-                    }
+                    // busca el usuario y actualiza su contraseña cuando existe
+                    val usuarioEncontrado = UsuarioRepository.buscarUsuario(usuario)
 
                     if (usuarioEncontrado != null) {
-                        usuarioEncontrado.contrasena = nuevaContrasena
+                        UsuarioRepository.actualizarContrasena(
+                            usuarioEncontrado,
+                            nuevaContrasena
+                        )
                         mensaje = "Contraseña actualizada correctamente"
                     } else {
                         mensaje = "Usuario no encontrado"

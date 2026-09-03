@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun LoginScreen(
-    usuarios: List<Usuario>,
     onCrearCuenta: () -> Unit,
     onRecuperarContrasena: () -> Unit,
     onIngresar: () -> Unit,
@@ -75,10 +74,8 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                // verifica dentro de la coleccion de usuarios si correo y contraseña son validos
-                val usuarioValido = usuarios.any {
-                    it.nombre == usuario && it.contrasena == contrasena
-                }
+                // verifica las credenciales por medio del repositorio de usuarios
+                val usuarioValido = UsuarioRepository.autenticar(usuario, contrasena)
 
                 mensajeError = if (usuarioValido) {
                     ""
