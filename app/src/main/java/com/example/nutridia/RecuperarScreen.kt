@@ -45,24 +45,28 @@ fun RecuperarScreen(
         )
 
         Text(
-            text = "Ingresa tu usuario y una nueva contraseña",
+            text = "Ingresa tu correo y una nueva contraseña",
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
         )
 
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it },
-            label = { Text("Usuario") },
+            label = { Text("Correo") },
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = nuevaContrasena,
-            onValueChange = { nuevaContrasena = it },
+            onValueChange = {
+                if (it.length <= 4 && it.all { caracter -> caracter.isDigit() }) {
+                    nuevaContrasena = it
+                }
+            },
             label = { Text("Nueva contraseña") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
+                keyboardType = KeyboardType.NumberPassword
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -71,20 +75,32 @@ fun RecuperarScreen(
 
         Button(
             onClick = {
-                if (usuario.isBlank() || nuevaContrasena.isBlank()) {
-                    mensaje = "Completa todos los campos"
-                } else {
-                    // busca el usuario y actualiza su contraseña cuando existe
-                    val usuarioEncontrado = UsuarioRepository.buscarUsuario(usuario)
+                when {
+                    usuario.isBlank() || nuevaContrasena.isBlank() -> {
+                        mensaje = "Completa todos los campos"
+                    }
 
-                    if (usuarioEncontrado != null) {
-                        UsuarioRepository.actualizarContrasena(
-                            usuarioEncontrado,
-                            nuevaContrasena
-                        )
-                        mensaje = "Contraseña actualizada correctamente"
-                    } else {
-                        mensaje = "Usuario no encontrado"
+                    !usuario.esCorreoValido() -> {
+                        mensaje = "Ingrese un correo válido"
+                    }
+
+                    nuevaContrasena.length != 4 -> {
+                        mensaje = "La contraseña debe tener 4 dígitos"
+                    }
+
+                    else -> {
+                        // busca el usuario y actualiza su contraseña cuando existe
+                        val usuarioEncontrado = UsuarioRepository.buscarUsuario(usuario)
+
+                        if (usuarioEncontrado != null) {
+                            UsuarioRepository.actualizarContrasena(
+                                usuarioEncontrado,
+                                nuevaContrasena
+                            )
+                            mensaje = "Contraseña actualizada correctamente"
+                        } else {
+                            mensaje = "Usuario no encontrado"
+                        }
                     }
                 }
             },

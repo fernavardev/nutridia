@@ -77,5 +77,12 @@ class RecetaRepository {
                 recomendacion = "Una alternativa ligera que combina proteínas con una variedad de verduras."
             )
         )
+
+        // buscar una receta dentro de la coleccion segun el dia seleccionado
+        fun buscarPorDia(dia: String): Receta? {
+            return recetas.find { receta ->
+                receta.dia == dia
+            }
+        }
     }
 }

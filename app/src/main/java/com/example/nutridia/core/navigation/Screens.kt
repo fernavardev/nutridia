@@ -12,4 +12,12 @@ object Registro
 object Recuperar
 
 @Serializable
+object Home
+
+@Serializable
 object Minuta
+
+@Serializable
+data class RecetaRoute(
+    val dia: String
+)

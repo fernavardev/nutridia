@@ -39,6 +39,8 @@ fun RegistroScreen(
     var contrasena by remember { mutableStateOf("") }
     var nivelCocina by remember { mutableStateOf("Bajo") }
 
+    var mensajeError by remember { mutableStateOf("") }
+
     // define niveles disponibles para seleccionar la experiencia en la cocina
     val nivelesCocina = listOf(
         "Bajo",
@@ -72,11 +74,15 @@ fun RegistroScreen(
 
         OutlinedTextField(
             value = contrasena,
-            onValueChange = { contrasena = it },
+            onValueChange = {
+                if (it.length <= 4 && it.all { caracter -> caracter.isDigit() }) {
+                    contrasena = it
+                }
+            },
             label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
+                keyboardType = KeyboardType.NumberPassword
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -116,12 +122,24 @@ fun RegistroScreen(
 
         Button(
             onClick = {
-                if (usuario.isNotBlank() && contrasena.isNotBlank()) {
-                    onRegistrar(
-                        usuario,
-                        contrasena,
-                        nivelCocina
-                    )
+                mensajeError = when {
+                    usuario.isBlank() || contrasena.isBlank() ->
+                        "Complete todos los campos"
+
+                    !usuario.esCorreoValido() ->
+                        "Ingrese un correo válido"
+
+                    contrasena.length != 4 ->
+                        "La contraseña debe tener 4 dígitos"
+
+                    else -> {
+                        onRegistrar(
+                            usuario,
+                            contrasena,
+                            nivelCocina
+                        )
+                        ""
+                    }
                 }
             },
             modifier = Modifier
@@ -131,6 +149,13 @@ fun RegistroScreen(
             Text("Registrarse")
         }
 
+        if (mensajeError.isNotEmpty()) {
+            Text(
+                text = mensajeError,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
         TextButton(
             onClick = onVolver,
             modifier = Modifier.padding(top = 8.dp)
@@ -138,4 +163,8 @@ fun RegistroScreen(
             Text("Volver al inicio")
         }
     }
+}
+
+fun String.esCorreoValido(): Boolean {
+    return Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$").matches(this)
 }

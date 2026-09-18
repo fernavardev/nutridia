@@ -5,12 +5,17 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.nutridia.HomeScreen
 import com.example.nutridia.LoginScreen
 import com.example.nutridia.MinutaScreen
+import com.example.nutridia.RecetaFragment
 import com.example.nutridia.RecetaRepository
 import com.example.nutridia.RecuperarScreen
 import com.example.nutridia.RegistroScreen
 import com.example.nutridia.UsuarioRepository
+import androidx.navigation.toRoute
+import android.os.Bundle
+import androidx.fragment.compose.AndroidFragment
 
 @Composable
 fun NavigationWrapper(modifier: Modifier = Modifier) {
@@ -35,7 +40,7 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
                     navController.navigate(Recuperar)
                 },
                 onIngresar = {
-                    navController.navigate(Minuta) {
+                    navController.navigate(Home) {
                         popUpTo(Login) {
                             inclusive = true
                         }
@@ -64,14 +69,43 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
             )
         }
 
+        composable<Home> {
+            HomeScreen(
+                onIrAMinuta = {
+                    navController.navigate(Minuta)
+                }
+            )
+        }
+
         composable<Minuta> {
             MinutaScreen(
                 recetas = recetas,
+                onVerReceta = { dia ->
+                    navController.navigate(
+                        RecetaRoute(dia = dia)
+                    )
+                },
                 onCerrarSesion = {
                     navController.navigate(Login) {
                         popUpTo(Minuta) {
                             inclusive = true
                         }
+                    }
+                }
+            )
+        }
+
+        composable<RecetaRoute> { backStackEntry ->
+
+            val recetaRoute = backStackEntry.toRoute<RecetaRoute>()
+
+            AndroidFragment<RecetaFragment>(
+                arguments = Bundle().apply {
+                    putString("dia", recetaRoute.dia)
+                },
+                onUpdate = { fragment ->
+                    fragment.onVolver = {
+                        navController.popBackStack()
                     }
                 }
             )
