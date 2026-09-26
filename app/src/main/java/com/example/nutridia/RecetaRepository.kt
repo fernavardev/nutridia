@@ -1,12 +1,24 @@
 package com.example.nutridia
 
+import androidx.compose.runtime.mutableStateListOf
+import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.tasks.await
+
 // repository que centraliza la coleccion de recetas de la aplicacion
 class RecetaRepository {
 
     // coleccion de objetos de receta con la minuta semanal
     companion object {
-        val recetas: List<Receta> = listOf(
+
+        private val database = FirebaseDatabase
+            .getInstance()
+            .getReference("recetas")
+
+        // Datos semilla utilizados para cargar e inicializar FIREBASE cuando el nodo de las recetas no existe
+        // Luego de ser cargados, las recetas utilizadas por la app se cargan desde firebase
+        private val recetasIniciales: List<Receta> = listOf(
             Receta(
+                id = "receta01",
                 dia = "Lunes",
                 nombre = "Pollo con arroz y verduras",
                 ingredientes = listOf(
@@ -21,6 +33,7 @@ class RecetaRepository {
                 recomendacion = "Una comida equilibrada que combina proteínas, carbohidratos y verduras."
             ),
             Receta(
+                id = "receta02",
                 dia = "Martes",
                 nombre = "Lentejas con verduras",
                 ingredientes = listOf(
@@ -35,6 +48,7 @@ class RecetaRepository {
                 recomendacion = "Las lentejas aportan proteínas vegetales, fibra y minerales."
             ),
             Receta(
+                id = "receta03",
                 dia = "Miércoles",
                 nombre = "Pescado con papas cocidas",
                 ingredientes = listOf(
@@ -49,6 +63,7 @@ class RecetaRepository {
                 recomendacion = "El pescado es una buena fuente de proteínas y grasas saludables."
             ),
             Receta(
+                id = "receta04",
                 dia = "Jueves",
                 nombre = "Pasta con salsa de tomate",
                 ingredientes = listOf(
@@ -63,6 +78,7 @@ class RecetaRepository {
                 recomendacion = "Complementar la pasta con verduras ayuda a obtener una comida más equilibrada."
             ),
             Receta(
+                id = "receta05",
                 dia = "Viernes",
                 nombre = "Ensalada de pollo",
                 ingredientes = listOf(
@@ -78,10 +94,41 @@ class RecetaRepository {
             )
         )
 
-        // buscar una receta dentro de la coleccion segun el dia seleccionado
-        fun buscarPorDia(dia: String): Receta? {
+        val recetas = mutableStateListOf<Receta>()
+
+        // busca una receta dentro de la coleccion segun su identificador
+        fun buscarPorId(id: String): Receta? {
             return recetas.find { receta ->
-                receta.dia == dia
+                receta.id == id
+            }
+        }
+
+        // Inicializa firebase con recetas base solamente si el nodo no existe aun
+        // si firebase ya contiene las recetas, los datos que ya contiene no se sobreescriben
+        suspend fun cargarDatosIniciales() {
+            val snapshot = database.get().await()
+
+            if (!snapshot.exists()) {
+                recetasIniciales.forEach { receta ->
+                    database
+                        .child(receta.id)
+                        .setValue(receta)
+                        .await()
+                }
+            }
+        }
+
+        suspend fun cargarRecetas() {
+            val snapshot = database.get().await()
+
+            recetas.clear()
+
+            snapshot.children.forEach { recetaSnapshot ->
+                val receta = recetaSnapshot.getValue(Receta::class.java)
+
+                if (receta != null) {
+                    recetas.add(receta)
+                }
             }
         }
     }

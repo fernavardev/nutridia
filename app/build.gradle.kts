@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrainsKotlinSerialization)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -57,4 +58,7 @@ dependencies {
 
     implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation("androidx.fragment:fragment-compose:1.8.9")
+
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.auth)
 }

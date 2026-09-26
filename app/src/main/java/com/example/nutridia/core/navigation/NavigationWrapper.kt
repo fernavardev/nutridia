@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.nutridia.HomeScreen
 import com.example.nutridia.LoginScreen
+import com.example.nutridia.CambiarContrasenaScreen
 import com.example.nutridia.MinutaScreen
 import com.example.nutridia.RecetaFragment
 import com.example.nutridia.RecetaRepository
@@ -16,11 +17,14 @@ import com.example.nutridia.UsuarioRepository
 import androidx.navigation.toRoute
 import android.os.Bundle
 import androidx.fragment.compose.AndroidFragment
-
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 @Composable
 fun NavigationWrapper(modifier: Modifier = Modifier) {
 
     val navController = rememberNavController()
+
+    val scope = rememberCoroutineScope()
 
     val recetas = RecetaRepository.recetas
 
@@ -39,11 +43,25 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
                 onRecuperarContrasena = {
                     navController.navigate(Recuperar)
                 },
-                onIngresar = {
-                    navController.navigate(Home) {
-                        popUpTo(Login) {
-                            inclusive = true
+                onIngresar = { correo, contrasena ->
+                    val usuario = UsuarioRepository.autenticar(
+                        correo,
+                        contrasena
+                    )
+
+                    if (usuario != null) {
+                        RecetaRepository.cargarDatosIniciales()
+                        RecetaRepository.cargarRecetas()
+
+                        navController.navigate(Home) {
+                            popUpTo(Login) {
+                                inclusive = true
+                            }
                         }
+
+                        true
+                    } else {
+                        false
                     }
                 }
             )
@@ -51,9 +69,18 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
 
         composable<Registro> {
             RegistroScreen(
-                onRegistrar = { nombre, contrasena, nivelCocina ->
-                    UsuarioRepository.registrar(nombre, contrasena, nivelCocina)
-                    navController.popBackStack()
+                onRegistrar = { correo, contrasena, nivelCocina ->
+                    val registrado = UsuarioRepository.registrar(
+                        correo,
+                        contrasena,
+                        nivelCocina
+                    )
+
+                    if (registrado) {
+                        navController.popBackStack()
+                    }
+
+                    registrado
                 },
                 onVolver = {
                     navController.popBackStack()
@@ -73,6 +100,39 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
             HomeScreen(
                 onIrAMinuta = {
                     navController.navigate(Minuta)
+                },
+                onCambiarContrasena = {
+                    navController.navigate(CambiarContrasena)
+                },
+                onCerrarSesion = {
+                    UsuarioRepository.cerrarSesion()
+
+                    navController.navigate(Login) {
+                        popUpTo(Home) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onEliminarCuenta = {
+                    scope.launch {
+                        val eliminado = UsuarioRepository.eliminarCuenta()
+
+                        if (eliminado) {
+                            navController.navigate(Login) {
+                                popUpTo(Home) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    }
+                },
+            )
+        }
+
+        composable<CambiarContrasena> {
+            CambiarContrasenaScreen(
+                onVolver = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -80,17 +140,10 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
         composable<Minuta> {
             MinutaScreen(
                 recetas = recetas,
-                onVerReceta = { dia ->
+                onVerReceta = { id ->
                     navController.navigate(
-                        RecetaRoute(dia = dia)
+                        RecetaRoute(id = id)
                     )
-                },
-                onCerrarSesion = {
-                    navController.navigate(Login) {
-                        popUpTo(Minuta) {
-                            inclusive = true
-                        }
-                    }
                 }
             )
         }
@@ -101,7 +154,7 @@ fun NavigationWrapper(modifier: Modifier = Modifier) {
 
             AndroidFragment<RecetaFragment>(
                 arguments = Bundle().apply {
-                    putString("dia", recetaRoute.dia)
+                    putString("id", recetaRoute.id)
                 },
                 onUpdate = { fragment ->
                     fragment.onVolver = {

@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.sp
 fun MinutaScreen(
     recetas: List<Receta>,
     onVerReceta: (String) -> Unit,
-    onCerrarSesion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var menuDiasExpandido by remember { mutableStateOf(false) }
@@ -111,7 +110,9 @@ fun MinutaScreen(
             }
         }
 
-        val recetaDelDia = RecetaRepository.buscarPorDia(diaSeleccionado)
+        val recetaDelDia = recetas.find { receta ->
+            receta.dia == diaSeleccionado
+        }
 
         if (recetaDelDia != null) {
             Card(
@@ -134,7 +135,7 @@ fun MinutaScreen(
 
                     Button(
                         onClick = {
-                            onVerReceta(recetaDelDia.dia)
+                            onVerReceta(recetaDelDia.id)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -144,15 +145,6 @@ fun MinutaScreen(
                     }
                 }
             }
-        }
-
-        Button(
-            onClick = onCerrarSesion,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
-            Text("Cerrar sesión")
         }
     }
 }

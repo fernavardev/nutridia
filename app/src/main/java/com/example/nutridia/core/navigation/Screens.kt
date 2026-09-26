@@ -15,9 +15,12 @@ object Recuperar
 object Home
 
 @Serializable
+object CambiarContrasena
+
+@Serializable
 object Minuta
 
 @Serializable
 data class RecetaRoute(
-    val dia: String
+    val id: String
 )

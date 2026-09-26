@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -17,10 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun RecuperarScreen(
@@ -29,8 +28,8 @@ fun RecuperarScreen(
 ) {
     // guarda datos ingresados y mensaje generado durante la recuperacion
     var usuario by remember { mutableStateOf("") }
-    var nuevaContrasena by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier
@@ -45,7 +44,7 @@ fun RecuperarScreen(
         )
 
         Text(
-            text = "Ingresa tu correo y una nueva contraseña",
+            text = "Ingresa tu correo para recuperar tu contraseña",
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
         )
 
@@ -56,50 +55,34 @@ fun RecuperarScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        OutlinedTextField(
-            value = nuevaContrasena,
-            onValueChange = {
-                if (it.length <= 4 && it.all { caracter -> caracter.isDigit() }) {
-                    nuevaContrasena = it
-                }
-            },
-            label = { Text("Nueva contraseña") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.NumberPassword
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        )
-
         Button(
             onClick = {
                 when {
-                    usuario.isBlank() || nuevaContrasena.isBlank() -> {
-                        mensaje = "Completa todos los campos"
+                    usuario.isBlank() -> {
+                        mensaje = "Ingrese su correo"
                     }
 
                     !usuario.esCorreoValido() -> {
                         mensaje = "Ingrese un correo válido"
                     }
 
-                    nuevaContrasena.length != 4 -> {
-                        mensaje = "La contraseña debe tener 4 dígitos"
-                    }
-
                     else -> {
-                        // busca el usuario y actualiza su contraseña cuando existe
-                        val usuarioEncontrado = UsuarioRepository.buscarUsuario(usuario)
+                        scope.launch {
+                            val usuarioEncontrado =
+                                UsuarioRepository.buscarUsuario(usuario)
 
-                        if (usuarioEncontrado != null) {
-                            UsuarioRepository.actualizarContrasena(
-                                usuarioEncontrado,
-                                nuevaContrasena
-                            )
-                            mensaje = "Contraseña actualizada correctamente"
-                        } else {
-                            mensaje = "Usuario no encontrado"
+                            if (usuarioEncontrado != null) {
+                                val enviado =
+                                    UsuarioRepository.recuperarContrasena(usuario)
+
+                                mensaje = if (enviado) {
+                                    "Correo de recuperación enviado"
+                                } else {
+                                    "No fue posible enviar el correo de recuperación"
+                                }
+                            } else {
+                                mensaje = "Usuario no encontrado"
+                            }
                         }
                     }
                 }
@@ -108,7 +91,7 @@ fun RecuperarScreen(
                 .fillMaxWidth()
                 .padding(top = 24.dp)
         ) {
-            Text("Cambiar contraseña")
+            Text("Enviar recuperacion")
         }
 
         if (mensaje.isNotEmpty()) {

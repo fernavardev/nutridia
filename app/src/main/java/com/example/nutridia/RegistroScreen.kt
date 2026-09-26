@@ -27,10 +27,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.RadioButton
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegistroScreen(
-    onRegistrar: (String, String, String) -> Unit,
+    onRegistrar: suspend (String, String, String) -> Boolean,
     onVolver: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -40,6 +42,10 @@ fun RegistroScreen(
     var nivelCocina by remember { mutableStateOf("Bajo") }
 
     var mensajeError by remember { mutableStateOf("") }
+
+    var registrando by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
 
     // define niveles disponibles para seleccionar la experiencia en la cocina
     val nivelesCocina = listOf(
@@ -75,7 +81,7 @@ fun RegistroScreen(
         OutlinedTextField(
             value = contrasena,
             onValueChange = {
-                if (it.length <= 4 && it.all { caracter -> caracter.isDigit() }) {
+                if (it.length <= 6 && it.all { caracter -> caracter.isDigit() }) {
                     contrasena = it
                 }
             },
@@ -122,31 +128,51 @@ fun RegistroScreen(
 
         Button(
             onClick = {
-                mensajeError = when {
-                    usuario.isBlank() || contrasena.isBlank() ->
-                        "Complete todos los campos"
+                when {
+                    usuario.isBlank() || contrasena.isBlank() -> {
+                        mensajeError = "Complete todos los campos"
+                    }
 
-                    !usuario.esCorreoValido() ->
-                        "Ingrese un correo válido"
+                    !usuario.esCorreoValido() -> {
+                        mensajeError = "Ingrese un correo válido"
+                    }
 
-                    contrasena.length != 4 ->
-                        "La contraseña debe tener 4 dígitos"
+                    contrasena.length != 6 -> {
+                        mensajeError = "La contraseña debe tener 6 dígitos"
+                    }
 
                     else -> {
-                        onRegistrar(
-                            usuario,
-                            contrasena,
-                            nivelCocina
-                        )
-                        ""
+                        scope.launch {
+                            registrando = true
+                            mensajeError = ""
+
+                            val registrado = onRegistrar(
+                                usuario,
+                                contrasena,
+                                nivelCocina
+                            )
+
+                            registrando = false
+
+                            if (!registrado) {
+                                mensajeError = "No fue posible registrar el usuario"
+                            }
+                        }
                     }
                 }
             },
+            enabled = !registrando,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
         ) {
-            Text("Registrarse")
+            Text(
+                if (registrando) {
+                    "Registrando..."
+                } else {
+                    "Registrarse"
+                }
+            )
         }
 
         if (mensajeError.isNotEmpty()) {

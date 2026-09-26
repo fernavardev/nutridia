@@ -17,11 +17,11 @@ class RecetaFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        val dia = requireArguments().getString("dia").orEmpty()
+        val id = requireArguments().getString("id").orEmpty()
 
         return ComposeView(requireContext()).apply {
             setContent {
-                val receta = RecetaRepository.buscarPorDia(dia)
+                val receta = RecetaRepository.buscarPorId(id)
 
                 if (receta != null) {
                     RecetaScreen(

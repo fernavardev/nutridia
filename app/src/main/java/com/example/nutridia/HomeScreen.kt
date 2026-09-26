@@ -16,10 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.material3.Button
 
 @Composable
 fun HomeScreen(
-    onIrAMinuta: () -> Unit
+    onIrAMinuta: () -> Unit,
+    onCambiarContrasena: () -> Unit,
+    onEliminarCuenta: () -> Unit,
+    onCerrarSesion: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -70,5 +74,32 @@ fun HomeScreen(
                 }
             }
         )
+
+        androidx.compose.material3.Button(
+            onClick = onCambiarContrasena,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        ) {
+            Text("Cambiar contraseña")
+        }
+
+        androidx.compose.material3.Button(
+            onClick = onEliminarCuenta,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        ) {
+            Text("Eliminar mi cuenta")
+        }
+
+        androidx.compose.material3.Button(
+            onClick = onCerrarSesion,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        ) {
+            Text("Cerrar sesión")
+        }
     }
 }

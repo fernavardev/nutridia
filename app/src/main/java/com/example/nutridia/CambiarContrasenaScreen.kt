@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,22 +22,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(
-    onCrearCuenta: () -> Unit,
-    onRecuperarContrasena: () -> Unit,
-    onIngresar: suspend (String, String) -> Boolean,
+fun CambiarContrasenaScreen(
+    onVolver: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    // Mantiene estado de los datos ingresados y mensajes de validacion del formulario
-    var usuario by remember { mutableStateOf("") }
-    var contrasena by remember { mutableStateOf("") }
-    var mensajeError by remember { mutableStateOf("") }
-    var ingresando by remember { mutableStateOf(false) }
+    var nuevaContrasena by remember { mutableStateOf("") }
+    var confirmarContrasena by remember { mutableStateOf("") }
+    var mensaje by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
 
@@ -48,29 +43,41 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "NutriDía 🥜",
-            fontSize = 32.sp
+            text = "Cambiar contraseña",
+            fontSize = 28.sp
         )
 
         Text(
-            text = "Tu menú semanal, fácil y saludable",
+            text = "Ingresa tu nueva contraseña",
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
         )
 
         OutlinedTextField(
-            value = usuario,
-            onValueChange = { usuario = it },
-            label = { Text("Correo") },
+            value = nuevaContrasena,
+            onValueChange = {
+                if (it.length <= 6 && it.all { caracter -> caracter.isDigit() }) {
+                    nuevaContrasena = it
+                }
+            },
+            label = { Text("Nueva contraseña") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword
+            ),
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
-            value = contrasena,
-            onValueChange = { contrasena = it },
-            label = { Text("Contraseña") },
+            value = confirmarContrasena,
+            onValueChange = {
+                if (it.length <= 6 && it.all { caracter -> caracter.isDigit() }) {
+                    confirmarContrasena = it
+                }
+            },
+            label = { Text("Confirmar contraseña") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
+                keyboardType = KeyboardType.NumberPassword
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,65 +87,51 @@ fun LoginScreen(
         Button(
             onClick = {
                 when {
-                    usuario.isBlank() || contrasena.isBlank() -> {
-                        mensajeError = "Complete todos los campos"
+                    nuevaContrasena.isBlank() || confirmarContrasena.isBlank() -> {
+                        mensaje = "Complete todos los campos"
                     }
 
-                    !usuario.esCorreoValido() -> {
-                        mensajeError = "Ingrese un correo válido"
+                    nuevaContrasena.length != 6 -> {
+                        mensaje = "La contraseña debe tener 6 dígitos"
+                    }
+
+                    nuevaContrasena != confirmarContrasena -> {
+                        mensaje = "Las contraseñas no coinciden"
                     }
 
                     else -> {
                         scope.launch {
-                            ingresando = true
-                            mensajeError = ""
+                            val actualizado =
+                                UsuarioRepository.actualizarContrasena(nuevaContrasena)
 
-                            val usuarioValido = onIngresar(
-                                usuario,
-                                contrasena
-                            )
-
-                            ingresando = false
-
-                            if (!usuarioValido) {
-                                mensajeError = "Correo o contraseña incorrectos"
+                            mensaje = if (actualizado) {
+                                "Contraseña actualizada correctamente"
+                            } else {
+                                "No fue posible actualizar la contraseña"
                             }
                         }
                     }
                 }
             },
-            enabled = !ingresando,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
         ) {
-            Text(
-                if (ingresando) {
-                    "Ingresando..."
-                } else {
-                    "Ingresar"
-                }
-            )
+            Text("Cambiar contraseña")
         }
 
-        if (mensajeError.isNotEmpty()) {
+        if (mensaje.isNotEmpty()) {
             Text(
-                text = mensajeError,
+                text = mensaje,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
 
         TextButton(
-            onClick = onCrearCuenta,
+            onClick = onVolver,
             modifier = Modifier.padding(top = 8.dp)
         ) {
-            Text("Crear cuenta")
-        }
-
-        TextButton(
-            onClick = onRecuperarContrasena
-        ) {
-            Text("Recuperar contraseña")
+            Text("Volver")
         }
     }
 }
